@@ -1,0 +1,38 @@
+---
+version: "3.9"
+
+services:
+  sunshine:
+    image: josh5/sunshine:latest
+    privileged: true
+
+    # NETWORK:
+    hostname: ${HOSTNAME}
+    extra_hosts:
+      - "${HOSTNAME}:127.0.0.1"
+    ports:
+      - 47984-47990:47984-47990/tcp
+      - 48010:48010
+      - 47998-48000:47998-48000/udp
+    ipc: host
+
+    # ENVIRONMENT:
+    environment:
+      # Sunshine
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # User
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: ${UMASK:-000}
+      TZ: ${TZ:-Pacific/Auckland}
+      # Host
+      DISPLAY: ${DISPLAY}
+      XDG_RUNTIME_DIR: ${XDG_RUNTIME_DIR}
+      PULSE_SERVER: ${PULSE_SERVER}
+
+    # MOUNTS:
+    volumes:
+      - "/home/${USER}/appdata/sunshine:/home/default:rw"
+      - "${XORG_SOCKET_DIR}:/tmp/.X11-unix:rw"
+      - "${PULSE_SOCKET_DIR}:/tmp/pulse:rw"
+      - /run/dbus:/run/dbus:ro
