@@ -14,7 +14,7 @@ jobs:
 
   build_docker:
 
-    name: Build Docker Image
+    name: Plugin
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -66,7 +66,7 @@ jobs:
           fi
         fi
 
-        echo "Build: [$(date +"%D %T")] [${GITHUB_REF_NAME}] [${GITHUB_SHA}]" > ./docker/overlay/version.txt
+        echo "Build: [$(date +"%D %T")] [${GITHUB_REF_NAME}] [${GITHUB_SHA}]" > ./plugins/${{ matrix.plugin-name }}/docker/overlay/version.txt
 
         DOCKER_PUSH="true"
         if [[ ${DOCKER_IMAGE} != 'docker.io/josh5/${{ matrix.plugin-name }}' ]]; then
@@ -109,7 +109,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./plugins/${{ matrix.plugin-name }}/docker/
-        file: Dockerfile
+        file: ./plugins/${{ matrix.plugin-name }}/docker/Dockerfile
         pull: true
         platforms: ${{ steps.prepare.outputs.docker_platforms }}
         push: ${{ steps.prepare.outputs.docker_push }}
