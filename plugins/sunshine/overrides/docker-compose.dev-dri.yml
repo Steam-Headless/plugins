@@ -5,3 +5,5 @@ services:
   sunshine:
     devices:
       - /dev/dri
+    environment:
+      LIBVA_DRIVER_NAME: ${LIBVA_DRIVER_NAME:-i965}
