@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+###
+# File: test.sh
+# Project: plugin.sunshine
+# File Created: Sunday, 9th October 2022 12:39:35 am
+# Author: Josh.5 (jsunnex@gmail.com)
+# -----
+# Last Modified: Sunday, 9th October 2022 6:32:56 pm
+# Modified By: Josh.5 (jsunnex@gmail.com)
+###
+
+project_base_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+
+# Configure enabled services
+if [[ -z "${ENABLED_SERVICES:-}" ]]; then
+    echo "No services are enabled. First populate a 'ENABLED_SERVICES' env variable with a list of services to run."
+    exit 0
+fi
+
+
+# Export default variables
+export HOSTNAME
+export PULSE_SERVER=${PULSE_SERVER:-unix:/tmp/pulse/pulse-socket}
+
+
+# Specify compose command
+docker_compose_command="docker compose"
+if command -v docker-compose &> /dev/null; then
+    docker_compose_command="docker-compose"
+fi
+
+
+# Build selection docker-compose overrides based on execution environment
+pushd "${project_base_path}" &> /dev/null
+compose_overrides=""
+for service in $(ls ./services/); do
+    # Ignore anything in this directory that is not a directory
+    [[ ! -d ./services/${service} ]] && continue
+    # Check if the given service is configured to be enabled
+    if [[ "${ENABLED_SERVICES}" == *"${service}"*  ]]; then
+        echo "Enabling service '${service}'"
+
+        # Add base compose file
+        compose_overrides="${compose_overrides} -f ./services/${service}/docker-compose.base.yml"
+
+        # Source all env variables
+        set -a
+        [[ -f ./services/${service}/base.env ]] && source ./services/${service}/base.env
+        set +a
+
+        # Check for intel hardware
+        if ls /dev/dri/render* &> /dev/null; then
+            if [[ -f "./services/${service}/overrides/docker-compose.dev-dri.yml" ]]; then
+                # Include 'dev-dri' override
+                compose_overrides="${compose_overrides} -f ./services/${service}/overrides/docker-compose.dev-dri.yml"
+            fi
+        fi
+
+        # Check for nvidia GPU hardware
+        nvidia_gpu=$(nvidia-smi --format=csv --query-gpu=uuid 2> /dev/null | sed -n 2p)
+        if [[ ! -z "${nvidia_pci_address}" ]]; then
+            if [[ -f "./services/${service}/overrides/docker-compose.nvidia.yml" ]]; then
+                # Include 'nvidia' override
+                compose_overrides="${compose_overrides} -f ./services/${service}/overrides/docker-compose.nvidia.yml"
+            fi
+        fi
+    fi
+done
+
+
+# Source user environment overrides
+set -a
+[[ -f /home/default/plugins.env ]] && source /home/default/plugins.env
+set +a
+
+
+# Execute compose arg
+${docker_compose_command} \
+    -f ./services/docker-compose.yml \
+    ${compose_overrides} \
+    ${@}
+
+popd &> /dev/null
