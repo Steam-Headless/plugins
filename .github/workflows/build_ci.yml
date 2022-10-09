@@ -66,7 +66,7 @@ jobs:
           fi
         fi
 
-        echo "Build: [$(date +"%D %T")] [${GITHUB_REF_NAME}] [${GITHUB_SHA}]" > ./plugins/${{ matrix.plugin-name }}/docker/overlay/version.txt
+        echo "Build: [$(date +"%D %T")] [${GITHUB_REF_NAME}] [${GITHUB_SHA}]" > ./services/${{ matrix.plugin-name }}/docker/overlay/version.txt
 
         DOCKER_PUSH="true"
         if [[ ${DOCKER_IMAGE} != 'docker.io/josh5/${{ matrix.plugin-name }}' ]]; then
@@ -108,8 +108,8 @@ jobs:
       if: success()
       uses: docker/build-push-action@v2
       with:
-        context: ./plugins/${{ matrix.plugin-name }}/docker/
-        file: ./plugins/${{ matrix.plugin-name }}/docker/Dockerfile
+        context: ./services/${{ matrix.plugin-name }}/docker/
+        file: ./services/${{ matrix.plugin-name }}/docker/Dockerfile
         pull: true
         platforms: ${{ steps.prepare.outputs.docker_platforms }}
         push: ${{ steps.prepare.outputs.docker_push }}
