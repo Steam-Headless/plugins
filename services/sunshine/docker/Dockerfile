@@ -23,27 +23,13 @@ USER root
 COPY --from=gosu-downloader /tmp/gosu/bin/gosu /usr/local/bin/gosu
 
 # Configure default user and set env
+# The users UID and GID will be set on container startup
 ENV \
-    USER="default" \
-    USER_PASSWORD="password" \
-    HOME="/home/default" \
-    TZ="Pacific/Auckland" \
-    USER_LOCALES="en_US.UTF-8 UTF-8"
-RUN \
-    echo "**** Configure default user '${USER}' ****" \
-        && mkdir -p ${HOME} \
-        && useradd -d ${HOME} -s /bin/bash ${USER} \
-        && chown -R ${USER} ${HOME} \
-    && \
-    echo "**** Verify gosu works ****" \
-        && gosu nobody true \
-    && \
-    echo
+    PUID=1000 \
+    PGID=1000 \
+    UMASK=000
 
-# Set the working directory
-WORKDIR ${HOME}
-
-# Config files
+# Import overlay
 COPY overlay /
 
 # Ref:
