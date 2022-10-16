@@ -1,0 +1,12 @@
+# Ignore IDE config for this project
+.idea/**
+
+# Ignore build environments
+venv/**
+build/**
+dist/**
+
+# Ignore temp files
+**/__pycache__
+steam_headless_plugins/version.txt
+steam_headless_plugins.egg-info

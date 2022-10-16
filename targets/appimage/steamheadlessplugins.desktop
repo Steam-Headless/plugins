@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SteamHeadlessPlugins
+Exec=launcher
+Comment=Steam Headless Plugins
+Icon=steamheadlessplugins
+Categories=System;
+Terminal=true
