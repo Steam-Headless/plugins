@@ -24,17 +24,17 @@ jobs:
     steps:
     # Fetch shallow git repository
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Use QEMU to build
     - name: Set up QEMU
       if: success()
       id: qemu
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v2
 
     # Use docker buildx to build the docker image
     - name: Build the Docker image
-      uses: docker/setup-buildx-action@v1
+      uses: docker/setup-buildx-action@v2
       if: success()
       id: buildx
       with:
@@ -79,15 +79,15 @@ jobs:
           DOCKER_PUSH="false"
         fi
 
-        echo ::set-output name=docker_image::${DOCKER_IMAGE}
-        echo ::set-output name=docker_tags::$(echo ${DOCKER_TAGS} | sed 's/,$//')
-        echo ::set-output name=docker_platforms::linux/amd64
-        echo ::set-output name=docker_push::${DOCKER_PUSH}
-        echo ::set-output name=docker_label_image_source::"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+        echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+        echo "docker_tags=$(echo ${DOCKER_TAGS} | sed 's/,$//')" >> $GITHUB_OUTPUT
+        echo "docker_platforms=linux/amd64" >> $GITHUB_OUTPUT
+        echo "docker_push=${DOCKER_PUSH}" >> $GITHUB_OUTPUT
+        echo "docker_label_image_source='${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}'" >> $GITHUB_OUTPUT
 
     # Cache the build
     - name: Cache Docker layers
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: /tmp/.buildx-cache-${{ matrix.plugin-name }}
@@ -98,7 +98,7 @@ jobs:
     # Login to Docker Hub
     - name: Login to Docker Hub
       if: success() && (startsWith(github.ref, 'refs/heads/') || startsWith(github.ref, 'refs/tags/'))
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
@@ -106,7 +106,7 @@ jobs:
     # Run docker build and push
     - name: Docker Build and Push
       if: success()
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: ./services/${{ matrix.plugin-name }}/docker/
         file: ./services/${{ matrix.plugin-name }}/docker/Dockerfile
